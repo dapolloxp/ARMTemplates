@@ -1,0 +1,250 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2018-05-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+              "description": "Specifies the name of the key vault."
+            }
+        },
+
+        "vaultSku": 
+        {
+            "type": "string",
+            "metadata": {
+              "description": "Specifies the SKU for the key vault"
+            }
+        },
+        "enableVaultForDeployment": 
+        {
+            "type": "bool",
+            "allowedValues": [
+              true,
+              false
+            ],
+            "metadata": {
+              "description": "Specifies whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault."
+            }
+          },
+          "enableVaultForTemplateDeployment": {
+            "type": "bool",
+            "allowedValues": [
+              true,
+              false
+            ],
+            "metadata": {
+              "description": "Specifies whether Azure Resource Manager is permitted to retrieve secrets from the key vault."
+            }
+          },
+          "enableVaultForDiskEncryption": {
+            "type": "bool",
+            "allowedValues": [
+              true,
+              false
+            ],
+            "metadata": {
+              "description": "Specifies whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys."
+            }
+          },
+          "tenantId": {
+            "type": "string",
+            "defaultValue": "[subscription().tenantId]",
+            "metadata": {
+              "description": "Specifies the Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Get it by using Get-AzSubscription cmdlet."
+            }
+          },
+          "objectId": {
+           "type": "string",
+            "metadata": {
+              "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+            }
+          },
+          "keysPermissions": {
+            "type": "array", 
+            "metadata": {
+              "description": "Specifies the permissions to keys in the vault. Valid values are: all, encrypt, decrypt, wrapKey, unwrapKey, sign, verify, get, list, create, update, import, delete, backup, restore, recover, and purge."
+            }
+          },
+          "secretsPermissions": {
+            "type": "array", 
+            "metadata": {
+              "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
+            }
+          },
+
+          "eventHubRG" : {
+            "type" : "string",
+            "defaultValue" : "SecurityLogging",
+            "metadata" : {
+              "description" : "The event Hub resource group name"
+            }
+          },
+          "eventHubName": {
+            "type": "string",
+            "defaultValue": "securitylogging",
+            "metadata": {
+              "description": "Optional. Name of the event hub within the namespace to which logs are streamed. Without this, an event hub is created for each log category."
+            }
+          },
+          "eventHubNamespace" : {
+            "type": "string",
+            "defaultValue": "securitylogging",
+            "metadata": {
+              "description": "Optional. Name of the event hub within the namespace to which logs are streamed. Without this, an event hub is created for each log category."
+            }
+          },
+          "EventHubSharedAccessPolicy" : {
+            "type": "string",
+            "defaultValue": "RootManageSharedAccessKey",
+            "metadata": {
+              "description": "Optional. Name of the event hub within the namespace to which logs are streamed. Without this, an event hub is created for each log category."
+            }
+          },
+          "logAnalyticsWorkspaceId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/72b61f0d-9bea-401f-ba03-2053af77b5e7/resourceGroups/centraloms/providers/Microsoft.OperationalInsights/workspaces/CentralLogRepo",
+            "metadata": {
+              "description": "Complete ARM resource id of the Log Analytics workspace to which logs will be sent."
+            }
+          },
+          "logAnalyticsRG" : {
+            "type": "string",
+            "defaultValue" : "centraloms",
+            "metadata": {
+              "description": "Complete ARM resource id of the Log Analytics workspace to which logs will be sent."
+            }
+          },
+          "logAnalyticsWorkspace" : {
+            "type" : "string",
+            "defaultValue" : "CentralLogRepo",
+            "metadata" : 
+            {
+              "description" : "The name of the log analytics workspace name"
+            }
+          },
+          "diagnosticStorageAccountName": {
+            "type": "string",
+           "defaultValue": "apolinarsg2",
+            "metadata": {
+              "description": "Storage account for diagnostic logs"
+            }
+          },
+          "diagnosticStorageAccountResourceGroup": {
+            "type": "string",
+            "defaultValue": "apolinarorgstorage",
+            "metadata": {
+              "description": "Storage account Resource group for diagnostic logs"
+            }
+          },
+
+          "logsRetentionInDays": {
+            "type": "int",
+            "minValue": 0,
+            "maxValue": 365,
+            "metadata": {
+              "description": "Specifies the number of days that logs are gonna be kept. If you do not want to apply any retention policy and retain data forever, set value to 0."
+            }
+          },
+          "location" : {
+            "type" : "string",
+            "defaultValue" : "eastus2",
+            "metadata" : {
+              "description": "keyvault location"
+            }
+
+          },
+          "networkAclsBypass": {
+            "type": "string",
+            "defaultValue": "AzureServices",
+            "metadata": {
+                "description": "Options include bypass: Logging, Metrics, AzureServices,"
+              }
+            },
+          "networkAclsVirtualNetworkRules": {
+            "type": "array",
+            
+            "metadata": {
+                "description": "Options to add Vnet to the Service Endpoint Firewall"
+              }
+            }
+          },
+    "variables": {
+      "eventHubAuthorizationRuleId" : "[concat('/subscriptions/',subscription().subscriptionID, '/resourceGroups/', parameters('eventHubRG'),'/providers/Microsoft.EventHub/namespaces/', parameters('eventHubNamespace'),'/authorizationrules/',parameters('EventHubSharedAccessPolicy'))]",
+      "storageAccountID": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('diagnosticStorageAccountResourceGroup'),'/providers/Microsoft.Storage/storageAccounts/',parameters('diagnosticStorageAccountName'))]",
+      "logAnalyticsWorkspaceId" : "[concat('/subscriptions/',subscription().subscriptionID, '/resourceGroups/', parameters('logAnalyticsRG'),'/providers/Microsoft.OperationalInsights/workspaces/',parameters('logAnalyticsWorkspace'))]"
+       },
+
+   "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "name": "[parameters('keyVaultName')]",
+      "apiVersion": "2018-02-14",
+      "location": "[parameters('location')]",
+      "tags": {
+        "displayName": "Key Vault with logging"
+      },
+      "properties": {
+        "enabledForDeployment": "[parameters('enableVaultForDeployment')]",
+        "enabledForTemplateDeployment": "[parameters('enableVaultForTemplateDeployment')]",
+        "enabledForDiskEncryption": "[parameters('enableVaultForDiskEncryption')]",
+        "tenantId": "[parameters('tenantId')]",
+        "accessPolicies": [
+          {
+            "objectId": "[parameters('objectId')]",
+            "tenantId": "[parameters('tenantId')]",
+            "permissions": {
+              "keys": "[parameters('keysPermissions')]",
+              "secrets": "[parameters('secretsPermissions')]"      
+            }
+          }
+        ],
+        "sku": {
+          "name": "[parameters('vaultSku')]",
+          "family": "A"
+        },
+        "networkAcls": {
+          "bypass": "[parameters('networkAclsBypass')]",
+          "defaultAction": "Deny",
+          "ipRules": [],
+           "virtualNetworkRules": "[parameters('networkAclsVirtualNetworkRules')]" 
+        }
+      },
+        "resources": [
+          {
+          "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+          "name": "[concat(parameters('keyVaultName'), '/Microsoft.Insights/service')]",
+          "apiVersion": "2016-09-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+   
+            ],
+            "properties": {
+              "name": "[parameters('keyVaultName')]",
+              "storageAccountId": "[variables('storageAccountId')]",
+              "workspaceId": "[variables('logAnalyticsWorkspaceId')]",
+              "eventHubAuthorizationRuleId": "[variables('eventHubAuthorizationRuleId')]",
+              "eventHubName": "[parameters('eventHubName')]",
+              "logs": [
+              {
+                  "category": "AuditEvent",
+                  "enabled": true,
+                  "retentionPolicy": {
+                  "enabled": true,
+                  "days": "[parameters('LogsRetentionInDays')]"
+                }
+              }
+            ] 
+          }
+        }
+      ]
+    } 
+  ],
+  "outputs": {
+    "KeyVault": {
+      "type": "string",
+      "value": "[parameters('keyVaultName')]"
+    }
+  }
+}

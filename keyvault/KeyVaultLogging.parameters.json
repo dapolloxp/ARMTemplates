@@ -1,0 +1,60 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": 
+    {
+        "networkAclsVirtualNetworkRules" : 
+        {
+            "value":
+            [
+                {
+                "id" : "/subscriptions/72b61f0d-9bea-401f-ba03-2053af77b5e7/resourcegroups/azurehubvnet/providers/microsoft.network/virtualnetworks/azurebatchvnet/subnets/default"
+                }
+            ]
+        },
+        "objectId" : 
+        {
+            "value": "ba020750-47a8-496b-8206-551e1d062ffb"
+        },
+        "keysPermissions" :
+        {
+            "value" : 
+            [
+                "all"
+            ]
+        },
+
+        "secretsPermissions" : {
+            "value": 
+            [
+                "all"
+            ]
+        },
+
+        "vaultSku" :
+        {
+            "value": "Standard"
+        },
+
+        "enableVaultForDeployment" :
+        {
+            "value": true
+        },
+        "enableVaultForTemplateDeployment" :
+        {
+            "value" : true
+        },
+        "enableVaultForDiskEncryption" : 
+        {
+            "value": true
+        },
+        "logsRetentionInDays" : 
+        {
+            "value" : 30
+        },
+        "keyVaultName" : 
+        {
+            "value" : "dapolinatest"
+        }
+}
+}
